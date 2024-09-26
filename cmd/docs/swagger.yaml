@@ -1,0 +1,106 @@
+definitions:
+  models.SignIn:
+    properties:
+      email:
+        type: string
+      password:
+        type: string
+    required:
+    - email
+    - password
+    type: object
+  models.SignUp:
+    properties:
+      email:
+        type: string
+      full_name:
+        type: string
+      id:
+        type: integer
+      password:
+        type: string
+      phone_number:
+        type: string
+    required:
+    - email
+    - full_name
+    - password
+    type: object
+info:
+  contact: {}
+paths:
+  /horse/meetings:
+    get:
+      consumes:
+      - application/json
+      description: Get the today meeting
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: ok
+          schema:
+            type: object
+      summary: Get the today meeting
+      tags:
+      - Get
+  /login:
+    post:
+      consumes:
+      - application/json
+      description: Login
+      parameters:
+      - description: User credentials
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/models.SignIn'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: ok
+          schema:
+            type: object
+      summary: Login
+      tags:
+      - auth
+  /logout:
+    get:
+      consumes:
+      - application/json
+      description: Logout
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: ok
+          schema:
+            type: object
+      summary: Logout
+      tags:
+      - auth
+  /register:
+    post:
+      consumes:
+      - application/json
+      description: Register
+      parameters:
+      - description: User credentials
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/models.SignUp'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: ok
+          schema:
+            type: object
+      summary: Register
+      tags:
+      - auth
+swagger: "2.0"
