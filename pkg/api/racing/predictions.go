@@ -4,7 +4,7 @@ import (
 	"database/sql"
 	"net/http"
 	"sort"
-
+	"strconv"
 
 	"github.com/mmanjoura/clean-bet-backend/pkg/database"
 	"github.com/mmanjoura/clean-bet-backend/pkg/models"
@@ -14,6 +14,7 @@ import (
 
 func GetPredictions(c *gin.Context) {
 	db := database.Database.DB
+	config := database.Database.Config
 
 	params := models.GetWinnerParams{}
 	float64TotalRuns := 0.0
@@ -24,39 +25,65 @@ func GetPredictions(c *gin.Context) {
 		return
 	}
 
+	params.Delta = config["Delta"]
+	params.AvgPosition = config["average_postion"]
+	params.TotalRuns = config["total_runs"]
+	stake, err := strconv.Atoi(config["bet_value"])
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Invalid bet value"})
+		return
+	}
+	params.Stake = stake
 
 	var eventPredicitonsResponse models.EventPredictionResponse
 
-	rows, err := db.Query(`SELECT id,
-							selection_id,
-							selection_name,
-							COALESCE(odds, '') as odds,
-							COALESCE(age, '') as age,
-							COALESCE(clean_bet_score, '') as clean_bet_score,
-							COALESCE(average_position, '') as average_position,
-							COALESCE(average_rating, '') as average_rating,
-							event_name,
-							COALESCE(event_date, '') as event_date,
-							COALESCE(race_date, '') as race_date,
-							COALESCE(event_time, '') as event_time,
-							COALESCE(selection_position, '') as selection_position,
-							ABS(prefered_distance - current_distance) as distanceTolerence,
-							COALESCE(num_runners, '') as num_runners,
-							COALESCE(number_runs, '') as number_runs,
-							COALESCE(prefered_distance, '') as prefered_distance,
-							COALESCE(current_distance, '') as current_distance,
-							COALESCE(potential_return, '') as potential_return,
-							COALESCE(current_event_price, '') as current_event_price,
-							COALESCE(current_event_position, '') as current_event_position,
-							created_at,
-							updated_at
-						FROM Analysis
-						WHERE event_date = ?  
-							AND distanceTolerence < ? 
-							AND average_position < ? 
-							AND number_runs < ? 
-						
-						ORDER BY clean_bet_score DESC Limit 5`, params.EventDate, params.Delta, params.AvgPosition, params.TotalRuns)
+	// Construct query based on region filter
+	query := `
+		SELECT id,
+			selection_id,
+			selection_name,
+			COALESCE(odds, '') as odds,
+			COALESCE(age, '') as age,
+			COALESCE(clean_bet_score, '') as clean_bet_score,
+			COALESCE(average_position, '') as average_position,
+			COALESCE(average_rating, '') as average_rating,
+			event_name,
+			COALESCE(event_date, '') as event_date,
+			COALESCE(race_date, '') as race_date,
+			COALESCE(event_time, '') as event_time,
+			COALESCE(selection_position, '') as selection_position,
+			ABS(prefered_distance - current_distance) as distanceTolerence,
+			COALESCE(num_runners, '') as num_runners,
+			COALESCE(number_runs, '') as number_runs,
+			COALESCE(prefered_distance, '') as prefered_distance,
+			COALESCE(current_distance, '') as current_distance,
+			COALESCE(potential_return, '') as potential_return,
+			COALESCE(current_event_price, '') as current_event_price,
+			COALESCE(current_event_position, '') as current_event_position,
+			created_at,
+			updated_at
+		FROM Analysis
+		WHERE event_date = ?
+			AND distanceTolerence < ?
+			AND average_position < ?
+			AND number_runs < ?`
+
+	// Modify query based on region parameter
+	if params.Region == "Both" {
+		query += ` AND event_name IN (SELECT event_name FROM events WHERE country IN ('UK', 'Ireland'))`
+	} else {
+		query += ` AND event_name IN (SELECT event_name FROM events WHERE country = ?)`
+	}
+
+	query += ` ORDER BY clean_bet_score DESC LIMIT 5`
+
+	// Execute query
+	var rows *sql.Rows
+	if params.Region == "both" {
+		rows, err = db.Query(query, params.EventDate, params.Delta, params.AvgPosition, params.TotalRuns)
+	} else {
+		rows, err = db.Query(query, params.EventDate, params.Delta, params.AvgPosition, params.TotalRuns, params.Region)
+	}
 
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
@@ -98,22 +125,20 @@ func GetPredictions(c *gin.Context) {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return
 		}
+
 		position, err := getPosition(racePrdiction.SelectionID, params.EventDate, db)
 
 		if err != nil {
 			racePrdiction.Position = "?"
 		} else {
 			racePrdiction.Position = position
-
 		}
 
-		predictions = append(predictions, racePrdiction)	
-
+		predictions = append(predictions, racePrdiction)
 	}
-	eventPredicitonsResponse.TotalBet = float64(len(predictions) * 10)
 
+	eventPredicitonsResponse.TotalBet = float64(len(predictions) * params.Stake)
 	eventPredicitonsResponse.Selections = predictions
-
 	eventPredicitonsResponse.TotalReturn = float64TotalRuns
 
 	// Sort filtered predictions by CleanBetScore if needed (descending order)
@@ -123,6 +148,7 @@ func GetPredictions(c *gin.Context) {
 
 	c.JSON(http.StatusOK, gin.H{"predictions": eventPredicitonsResponse})
 }
+
 
 func sumSlice(slice []float64) float64 {
 	var sum float64
@@ -165,5 +191,3 @@ func getPosition(selectionId int, race_date string, db *sql.DB) (string, error) 
 	}
 	return position, nil
 }
-
-

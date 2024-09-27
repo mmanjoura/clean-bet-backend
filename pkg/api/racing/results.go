@@ -66,7 +66,14 @@ func GetResults(c *gin.Context) {
 	}
 
 	if prediction.CurrentEventPrice == "" {
-		potentialReturn := 0.0
+		config := database.Database.Config
+		stake, err := strconv.Atoi(config["bet_value"]) 
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Invalid bet value"})
+			return
+		}
+
+		potentialReturn := 0
 		// now get the selection form and update Analysis
 		selectionForm, err := GetResult(prediction.SelectionLink, params.EventDate)
 		if err != nil {
@@ -90,8 +97,8 @@ func GetResults(c *gin.Context) {
 			// Calulate the potential return
 
 			if num == "1" {
-				potentialReturn = 10.0 * odds
-				prediction.PotentialReturn = fmt.Sprintf("%.2f", potentialReturn)
+				potentialReturn = stake * int(odds)
+				prediction.PotentialReturn = fmt.Sprintf("%.2f", float64(potentialReturn))
 			} else {
 				prediction.PotentialReturn = "0.00"
 			}
@@ -149,6 +156,7 @@ func updateAnalysis(db *sql.DB, prediction models.EventPrediction) error {
 
 func GetResult(selectionLink string, eventDate string) (models.SelectionForm, error) {
 	c := colly.NewCollector()
+	config := database.Database.Config
 
 	// Slice to store all horse information
 	selectionForm := models.SelectionForm{}
@@ -180,7 +188,7 @@ func GetResult(selectionLink string, eventDate string) (models.SelectionForm, er
 	})
 
 	// Start scraping the URL
-	c.Visit("https://www.sportinglife.com" + selectionLink)
+	c.Visit(config["DataLink"] + selectionLink)
 
 	return selectionForm, nil
 }

@@ -139,6 +139,7 @@ func TodayRunners(db *sql.DB, c *gin.Context, date string) ([]models.MeetingSele
 
 func GetSelectionForm(selectionLink string) ([]models.SelectionForm, error) {
 	c := colly.NewCollector()
+	config := database.Database.Config
 
 	// Slice to store all horse information
 	selectionsForm := []models.SelectionForm{}
@@ -203,7 +204,7 @@ func GetSelectionForm(selectionLink string) ([]models.SelectionForm, error) {
 	})
 
 	// Start scraping the URL
-	c.Visit("https://www.sportinglife.com" + selectionLink)
+	c.Visit(config["DataLink"] + selectionLink)
 
 	return selectionsForm, nil
 }

@@ -211,13 +211,14 @@ type EventPredictionResponse struct {
 }
 
 type GetWinnerParams struct {
-	SelectionId int     `json:"selection_id"`
-	EventDate   string  `json:"event_date"`
-	Delta       string  `json:"delta"`
-	AvgPosition string  `json:"avg_position"`
-	TotalRuns   string  `json:"total_runs"`
-	Stake       float64 `json:"stake"`
-	MeetingName string  `json:"meeting_name"`
+	SelectionId int    `json:"selection_id"`
+	EventDate   string `json:"event_date"`
+	Delta       string `json:"delta"`
+	AvgPosition string `json:"avg_position"`
+	TotalRuns   string `json:"total_runs"`
+	Stake       int    `json:"stake"`
+	MeetingName string `json:"meeting_name"`
+	Region      string `json:"region"`
 }
 
 type HistoricalData struct {

@@ -88,6 +88,7 @@ func GetMeetings(c *gin.Context) {
 func getTodayRunners() ([]models.MeetingSelections, error) {
 	// Initialize the collector
 	c := colly.NewCollector()
+	config := database.Database.Config
 
 	// Slice to store all horse information
 	horses := []models.MeetingSelections{}
@@ -131,7 +132,7 @@ func getTodayRunners() ([]models.MeetingSelections, error) {
 	})
 
 	// Start scraping the URL
-	c.Visit("https://www.sportinglife.com/racing/abc-guide")
+	c.Visit(config["DataLink"] + "/racing/abc-guide")
 
 	return horses, nil
 }
@@ -139,6 +140,7 @@ func getTodayRunners() ([]models.MeetingSelections, error) {
 func getEventConditons(eventLink string) models.RaceConditon {
 	// Initialize the collector
 	c := colly.NewCollector()
+	config := database.Database.Config
 	raceConditons := models.RaceConditon{}
 
 	// Set the HTML selector and processing logic
@@ -151,7 +153,7 @@ func getEventConditons(eventLink string) models.RaceConditon {
 	})
 
 	// Visit the URL
-	c.Visit("https://www.sportinglife.com" + eventLink)
+	c.Visit(config["DataLink"] + eventLink)
 
 	return raceConditons
 }
