@@ -85,9 +85,11 @@ func GetResults(c *gin.Context) {
 
 		prediction.CurrentEventPosition = selectionForm.Position
 
-		if strings.Contains(selectionForm.Position, "/") {
-			num := strings.Split(selectionForm.Position, "/")[0]
-			den := strings.Split(selectionForm.Position, "/")[1]
+		if strings.Contains(selectionForm.SpOdds, "/") && strings.Contains(selectionForm.Position, "/") {
+			num := strings.Split(selectionForm.SpOdds, "/")[0]
+			den := strings.Split(selectionForm.SpOdds, "/")[1]
+
+			pos := strings.Split(selectionForm.Position, "/")[0]
 
 			// convet the string to float
 			numFloat, _ := strconv.ParseFloat(num, 64)
@@ -96,7 +98,7 @@ func GetResults(c *gin.Context) {
 
 			// Calulate the potential return
 
-			if num == "1" {
+			if pos == "1" {
 				potentialReturn = stake * int(odds)
 				prediction.PotentialReturn = fmt.Sprintf("%.2f", float64(potentialReturn))
 			} else {

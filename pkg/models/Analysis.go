@@ -5,34 +5,38 @@ import (
 )
 
 type AnalysisDataResponse struct {
-	Parameters   OptimalParameters `json:"parameters"`
-	Selections   []AnalysisData    `json:"selections"`
-	RaceConditon RaceConditon      `json:"race_condition"`
+	Parameters      OptimalParameters `json:"parameters"`
+	Selections      []AnalysisData    `json:"selections"`
+	RaceConditon    RaceConditon      `json:"race_condition"`
+	UkBetValue      float64           `json:"uk_bet_value"`
+	UKReturn        float64           `json:"uk_return"`
+	IrelandBetValue float64           `json:"ireland_bet_value"`
+	IrelandReturn   float64           `json:"ireland_return"`
 }
 
 type AnalysisData struct {
-	ID            int     `json:"id"`
-	SelectionID   int     `json:"selection_id"`
-	SelectionName string  `json:"selection_name"`
-	SelecionLink  string  `json:"selection_link"`
-	EventLink     string  `json:"event_link"`
-	EventName     string  `json:"event_name"`
-	EventDate     string  `json:"event_date"`
-	EventTime     string  `json:"event_time"`
-	Position      string  `json:"position"`
-	Age           string  `json:"age"`
-	Trainer       string  `json:"trainer"`
-	Sex           string  `json:"sex"`
-	Sire          string  `json:"sire"`
-	Dam           string  `json:"dam"`
-	Owner         string  `json:"owner"`
-	EventClass    string  `json:"event_class"`
-	RecoveryDays  float64 `json:"recovery_days"`
-	NumRuns       int     `json:"num_runs"`
-	LastRunDate   string  `json:"last_run_date"`
-	Duration      int     `json:"duration"`
-	WinCount      int     `json:"win_count"`
-	RaceDate      string  `json:"race_date"`
+	ID            int    `json:"id"`
+	SelectionID   int    `json:"selection_id"`
+	SelectionName string `json:"selection_name"`
+	SelecionLink  string `json:"selection_link"`
+	EventLink     string `json:"event_link"`
+	EventName     string `json:"event_name"`
+	EventDate     string `json:"event_date"`
+	EventTime     string `json:"event_time"`
+	Position      string `json:"position"`
+	Age           string `json:"age"`
+	Trainer       string `json:"trainer"`
+	Sex           string `json:"sex"`
+	Sire          string `json:"sire"`
+	Dam           string `json:"dam"`
+	Owner         string `json:"owner"`
+	EventClass    string `json:"event_class"`
+	RecoveryDays  int    `json:"recovery_days"`
+	NumRuns       int    `json:"num_runs"`
+	LastRunDate   string `json:"last_run_date"`
+	Duration      int    `json:"duration"`
+	WinCount      int    `json:"win_count"`
+	RaceDate      string `json:"race_date"`
 
 	AvgDistanceFurlongs float64           `json:"avg_distance_furlongs"`
 	AvgOdds             float64           `json:"avg_odds"`
@@ -236,3 +240,33 @@ type Winner struct {
 	CurrentReturn   float64 `json:"current_return"`
 	EventDate       string  `json:"event_date"`
 }
+
+// Define the SelectionData struct based on provided data
+// type AnalysisSelection struct {
+// 	SelectionID                     int
+// 	SelectionName                   string
+// 	EventName                       string
+// 	EventDate                       string
+// 	EventTime                       string
+// 	Age                             string
+// 	Trainer                         string
+// 	Sex                             string
+// 	Sire                            string
+// 	Dam                             string
+// 	Owner                           string
+// 	EventClass                      int
+// 	NumberOfDaySinceLastRun         int
+// 	NumberOfPreviousRuns            int
+// 	WinCount                        int
+// 	AvgDistanceHorseRunInFurlong    float64
+// 	AvgOdds                         float64
+// 	LastRunPositions                string
+// 	LastRunDistances                string
+// 	LastRunCourses                  string
+// 	LastRunDates                    string
+// 	NumberOfRunners                 string
+// 	CurrentDistanceInFurlong        float64
+// 	PreferredHorseDistanceInFurlong float64
+// 	HorseAveragePosition            float64
+// 	TotalScore                      float64
+// }

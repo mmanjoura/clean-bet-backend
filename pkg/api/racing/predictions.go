@@ -29,6 +29,14 @@ func GetPredictions(c *gin.Context) {
 	params.AvgPosition = config["average_postion"]
 	params.TotalRuns = config["total_runs"]
 	stake, err := strconv.Atoi(config["bet_value"])
+	// scoreLimit, err := strconv.ParseFloat(config["score_limit"], 64)
+
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Invalid bet value"})
+		return
+	}
+
+
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Invalid bet value"})
 		return
@@ -63,10 +71,7 @@ func GetPredictions(c *gin.Context) {
 			created_at,
 			updated_at
 		FROM Analysis
-		WHERE event_date = ?
-			AND distanceTolerence < ?
-			AND average_position < ?
-			AND number_runs < ?`
+		WHERE event_date = ? and age < 8`
 
 	// Modify query based on region parameter
 	if params.Region == "Both" {
@@ -75,14 +80,14 @@ func GetPredictions(c *gin.Context) {
 		query += ` AND event_name IN (SELECT event_name FROM events WHERE country = ?)`
 	}
 
-	query += ` ORDER BY clean_bet_score DESC LIMIT 5`
+	query += ` ORDER BY clean_bet_score DESC LIMIT 5;`
 
 	// Execute query
 	var rows *sql.Rows
 	if params.Region == "both" {
-		rows, err = db.Query(query, params.EventDate, params.Delta, params.AvgPosition, params.TotalRuns)
+		rows, err = db.Query(query, params.EventDate)
 	} else {
-		rows, err = db.Query(query, params.EventDate, params.Delta, params.AvgPosition, params.TotalRuns, params.Region)
+		rows, err = db.Query(query, params.EventDate, params.Region)
 	}
 
 	if err != nil {

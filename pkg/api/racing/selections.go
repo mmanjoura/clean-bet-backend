@@ -202,7 +202,7 @@ func GetSelections(c *gin.Context) {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return
 		}
-		analysisData[i].RecoveryDays = recoveryDays
+		analysisData[i].RecoveryDays = int(recoveryDays)
 
 		// Get Analysis trend
 
@@ -254,6 +254,36 @@ func GetSelections(c *gin.Context) {
 		return analysisData[i].AvgPosition < analysisData[j].AvgPosition
 	})
 	analysisDataResponse.Selections = analysisData
+
+	// Get the total bet value for UK and Ireland
+	totalBetUK, err := getUkBetValue(db, c)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+	totalBetIreland, err := getIrelandBetValue(db, c)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	// Get the total return value for UK and Ireland
+	totalReturnUK, err := getUkReturn(db, c)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+	totalReturnIreland, err := getIrelandReturn(db, c)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	analysisDataResponse.UkBetValue = totalBetUK
+	analysisDataResponse.UKReturn = totalReturnUK
+	analysisDataResponse.IrelandBetValue = totalBetIreland
+	analysisDataResponse.IrelandReturn = totalReturnIreland
+
 
 	// Return the meeting data
 	c.JSON(http.StatusOK, gin.H{"analysisDataResponse": analysisDataResponse})
@@ -413,3 +443,61 @@ func average(values []float64) float64 {
 	return sum / float64(len(values))
 }
 
+func getUkBetValue(db *sql.DB, c *gin.Context) (float64, error) {
+
+	var totalBet float64
+	err := db.QueryRow(`
+		SELECT count(*) * 10
+		FROM Analysis
+		WHERE potential_return IS NOT NULL
+		AND event_name IN (SELECT event_name FROM Events WHERE country = 'UK')`).Scan(&totalBet)
+	if err != nil {
+
+		return 0.0, err
+	}
+
+	return totalBet, nil
+}
+
+func getIrelandBetValue(db *sql.DB, c *gin.Context) (float64, error) {
+
+	var totalBet float64
+	err := db.QueryRow(`
+		SELECT count(*) * 10
+		FROM Analysis
+		WHERE potential_return IS NOT NULL
+		AND event_name IN (SELECT event_name FROM Events WHERE country = 'Ireland')`).Scan(&totalBet)
+	if err != nil {
+		return 0.0, err
+	}
+
+	return totalBet, nil
+}
+
+func getUkReturn(db *sql.DB, c *gin.Context) (float64, error) {
+	
+	var totalReturn float64
+	err := db.QueryRow(`
+		SELECT sum(potential_return)
+		FROM Analysis
+		WHERE event_name IN (SELECT event_name FROM Events WHERE country = 'UK')`).Scan(&totalReturn)
+	if err != nil {
+		// return 0.0, err
+	}
+
+	return totalReturn, nil
+}
+
+func getIrelandReturn(db *sql.DB, c *gin.Context) (float64, error) {
+
+	var totalReturn float64
+	err := db.QueryRow(`
+		SELECT sum(potential_return)
+		FROM Analysis
+		WHERE event_name IN (SELECT event_name FROM Events WHERE country = 'Ireland')`).Scan(&totalReturn)
+	if err != nil {
+		// return 0.0, err
+	}
+
+	return totalReturn, nil
+}
